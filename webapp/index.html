@@ -1,0 +1,60 @@
+<html>
+    <head>
+            <title>Bootstrap Example</title>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+            <link rel="stylesheet" href="http://demo.interface.club/limitless/demo/bs3/Template/layout_1/LTR/default/full/assets/css/components.min.css">
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+            <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+            <script src="./socket.io.min.js" ></script>
+            <script src="d3.min.js"></script>
+            <script src="c3.min.js"></script>
+            <script src="c3.min.js"></script>
+    </head>
+    <body  ng-app="myApp" ng-controller="myCtrl">
+        <h1>Thong tin tien trinh xe</h1>
+        <table class="table table-striped">
+            <tr>
+                <td>Tốc độ :</td>
+                <td id="toc_do"></td>
+            </tr>
+            <tr>
+                    <td>xăng:</td>
+                    <td id="lit_xang"></td>
+                </tr>
+            <tr>
+                    <td>ODO-Trip:</td>
+                    <td id="quang_duong"></td>
+                </tr>
+            <tr>
+                    <td>độ mở bướm ga:</td>
+                    <td id="do_mo_buom_ga"></td>
+                </tr>
+            <tr>
+                    <td>gia_tri_so_xe:</td>
+                    <td id="gia_tri_so_xe"></td>
+                </tr>
+        </table>
+        <div id="c3-line-chart" style="width:400px;width:100%">
+            </div>
+        <!-- <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script> -->
+        <script src="tien_trinh_chart.js"></script>
+        <script>
+            let socket = io.connect('/web');
+            socket.on('info',(data) => {
+                if (data["lit_xang"]<=0){
+                    socket.disconnect();
+                }
+                updateDataChart(data["quang_duong"],data["lit_xang"]);
+                $(function(){
+                    $("#toc_do").html(`${data['toc_do']} km/h`)
+                    $("#lit_xang").html(`${data['lit_xang']} lit`)//lit_xang(1) lay Id o tren lit_xang (2) lay tu esp
+                    $("#do_mo_buom_ga").html(`${data['do_mo_buom_ga']} do`)
+                    $("#quang_duong").html(`${data['quang_duong']} km`)
+                    $("#gia_tri_so_xe").html(`${data['gia_tri_so_xe']} `)
+                })
+            })
+        </script>
+    </body>
+    </html>

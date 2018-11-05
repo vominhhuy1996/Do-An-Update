@@ -4,36 +4,105 @@ var http = require('http') 							//#include thư viện http - Tìm thêm về 
 var socketio = require('socket.io')				//#include thư viện socketio
  
 var ip = require('ip');
-var app = http.createServer();					//#Khởi tạo một chương trình mạng (app)
-var io = socketio(app);								//#Phải khởi tạo io sau khi tạo app!
+
+require("./database/mongoose");
+const Model = require("mongoose").model("Model");
+
+var express =require("express");
+var expressApp = new express();
+var bodyParser = require('body-parser');
+
+expressApp.use(bodyParser.json());
+expressApp.use(bodyParser.urlencoded({extended:true}))
+expressApp.use(require('./router'));
+
+var app = http.createServer(expressApp);					//#Khởi tạo một chương trình mạng (app)
+expressApp.use(express.static('webapp'));
 app.listen(PORT);										// Cho socket server (chương trình mạng) lắng nghe ở port 3484
 console.log("Server nodejs chay tai dia chi: " + ip.address() + ":" + PORT)
+
+var io = socketio(app);								//#Phải khởi tạo io sau khi tạo app!
+var espNamespace = io.of('/esp');
+var webNamespace = io.of('/web');
+
+var middleware = require('socketio-wildcard')();		//Để có thể bắt toàn bộ lệnh!
+espNamespace.use(middleware);									//Khi esp8266 emit bất kỳ lệnh gì lên thì sẽ bị bắt
+webNamespace.use(middleware);									//Khi webapp emit bất kỳ lệnh gì lên thì sẽ bị bắt
+
+//giải nén chuỗi JSON thành các OBJECT
+function ParseJson(jsondata) {
+    try {
+        return JSON.parse(jsondata);
+    } catch (error) {
+        return null;
+    }
+}
  
+webNamespace.on("connection",(socket)=>{
+    console.log("hellokitty!");
+})
 //Khi có mệt kết nối được tạo giữa Socket Client và Socket Server
-io.on('connection', function(socket) {	
+// io.on('connection', function(socket) {	//'connection' (1) này khác gì với 'connection' (2)
+// 	//hàm console.log giống như hàm Serial.println trên Arduino
+//     console.log("Connected"); //In ra màn hình console là đã có một Socket Client kết nối thành công.
+	
+// 	//Gửi đi lệnh 'welcome' với một tham số là một biến JSON. Trong biến JSON này có một tham số và tham số đó tên là message. Kiểu dữ liệu của tham số là một chuối.
+//     socket.emit('welcome', {
+//         message: 'Connected !!!!'
+//     });
+	
+// 	//Khi lắng nghe được lệnh "connection" với một tham số, và chúng ta đặt tên tham số là message. Mình thích gì thì mình đặt thôi.
+// 	//'connection' (2)
+//     socket.on('connection', function(message) {
+//         console.log(message);
+//     });
+	
+// 	//khi lắng nghe được lệnh "atime" với một tham số, và chúng ta đặt tên tham số đó là data. Mình thích thì mình đặt thôi
+//     socket.on('atime', function(data) {
+//         sendTime();
+//         console.log(data);
+//     });
+	
+// 	socket.on('arduino', function (data) {
+// 	  io.sockets.emit('arduino', { message: 'R0' });
+//       console.log(data);
+//     });
+// });
+
+espNamespace.on('connection', function(socket) {	//'connection' (1) này khác gì với 'connection' (2)
 	//hàm console.log giống như hàm Serial.println trên Arduino
     console.log("Connected"); //In ra màn hình console là đã có một Socket Client kết nối thành công.
-	
-	var led = [true, false] //định nghĩa một mảng 1 chiều có 2 phần tử: true, false. Mảng này sẽ được gửi đi nhằm thay đổi sự sáng tắt của 2 con đèn LED đỏ và xanh. Dựa vào cài đặt ở Arduino mà đèn LEd sẽ bị bật hoặc tắt. Hãy thử tăng hoạt giảm số lượng biến của mảng led này xem. Và bạn sẽ hiểu điều kỳ diệu của JSON!
-	
-	//Tạo một chu kỳ nhiệm vụ sẽ chạy lại sau mỗi 200ms
-	var interval1 = setInterval(function() {
-		//đảo trạng thái của mảng led, đảo cho vui để ở Arduino nó nhấp nháy cho vui.
-		for (var i = 0; i < led.length; i++) {
-			led[i] = !led[i]
-		}
-		
-		//Cài đặt chuỗi JSON, tên biến JSON này là json 
-		var json = {
-			"led": led //có một phần tử là "led", phần tử này chứa giá trị của mảng led.
-		}
-		socket.emit('LED', json) //Gửi lệnh LED với các tham số của của chuỗi JSON
-		console.log("send LED")//Ghi ra console.log là đã gửi lệnh LED
-	}, 200)//200ms
-	
-	//Khi socket client bị mất kết nối thì chạy hàm sau.
-	socket.on('disconnect', function() {
-		console.log("disconnect") 	//in ra màn hình console cho vui
-		clearInterval(interval1)		//xóa chu kỳ nhiệm vụ đi, chứ không xóa là cái task kia cứ chạy mãi thôi đó!
+	//Gửi đi lệnh 'welcome' với một tham số là một biến JSON. Trong biến JSON này có một tham số và tham số đó tên là message. Kiểu dữ liệu của tham số là một chuối.
+    socket.emit('welcome', {
+      daketnoi: 'Connected !!!!'
+    });
+
+	//Khi lắng nghe được lệnh "connection" với một tham số, và chúng ta đặt tên tham số là message. Mình thích gì thì mình đặt thôi.
+	//'connection' (2)
+    socket.on('connection', function(loveit) {
+        console.log(loveit);
+    });
+	//khi lắng nghe được lệnh "atime" với một tham số, và chúng ta đặt tên tham số đó là data. Mình thích thì mình đặt thôi
+    socket.on('atime', async function(data) {
+        //sendTime();
+        if (Model){
+            console.log(data);
+            // let model = new Model();
+            // model.setObject(data);
+            // await model.create();
+            webNamespace.emit("info", data);
+        }
+    });
+    socket.on("*", function(packet) {
+        console.log(packet);
+		// console.log("esp8266 rev and send to webapp packet: ", packet.data) //in ra để debug
+		// var eventName = packet.data[0]
+		// var eventJson = packet.data[1] || {} //nếu gửi thêm json thì lấy json từ lệnh gửi, không thì gửi chuỗi json rỗng, {}
+		// webapp_nsp.emit(eventName, eventJson) //gửi toàn bộ lệnh + json đến webapp
 	})
+
+	//socket.on('arduino', function (data) {
+	 // io.sockets.emit('arduino', { message: 'R0' });
+      //console.log(data);
+    //});
 });
