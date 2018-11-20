@@ -22,15 +22,15 @@ app.listen(PORT);										// Cho socket server (chương trình mạng) lắng 
 console.log("Server nodejs chay tai dia chi: " + ip.address() + ":" + PORT)
 
 var io = socketio(app);								//#Phải khởi tạo io sau khi tạo app!
-var espNamespace = io.of('/esp');
-var webNamespace = io.of('/web');
+var espNamespace = io.of('/esp'); // socket lang nghe từ esp
+var webNamespace = io.of('/web'); // socket lang nghe tu webapp
 
 var middleware = require('socketio-wildcard')();		//Để có thể bắt toàn bộ lệnh!
 espNamespace.use(middleware);									//Khi esp8266 emit bất kỳ lệnh gì lên thì sẽ bị bắt
 webNamespace.use(middleware);									//Khi webapp emit bất kỳ lệnh gì lên thì sẽ bị bắt
 
 //giải nén chuỗi JSON thành các OBJECT
-function ParseJson(jsondata) {
+function ParseJson(jsondata) { // jsondata phai la string
     try {
         return JSON.parse(jsondata);
     } catch (error) {
@@ -38,8 +38,8 @@ function ParseJson(jsondata) {
     }
 }
  
-webNamespace.on("connection",(socket)=>{
-    console.log("hellokitty!");
+webNamespace.on("connection",(socket)=>{ // lang nghe socket connect tu webapp
+    console.log("Webapp connected!"); // xuat thong bao conneted!
 })
 //Khi có mệt kết nối được tạo giữa Socket Client và Socket Server
 // io.on('connection', function(socket) {	//'connection' (1) này khác gì với 'connection' (2)
@@ -69,40 +69,24 @@ webNamespace.on("connection",(socket)=>{
 //     });
 // });
 
-espNamespace.on('connection', function(socket) {	//'connection' (1) này khác gì với 'connection' (2)
+espNamespace.on('connection', function(socket) { // socket lang nghe connection tu esp
 	//hàm console.log giống như hàm Serial.println trên Arduino
-    console.log("Connected"); //In ra màn hình console là đã có một Socket Client kết nối thành công.
-	//Gửi đi lệnh 'welcome' với một tham số là một biến JSON. Trong biến JSON này có một tham số và tham số đó tên là message. Kiểu dữ liệu của tham số là một chuối.
-    socket.emit('welcome', {
-      daketnoi: 'Connected !!!!'
-    });
+    console.log("Esp connected!"); //In ra màn hình console là đã có một Socket Client kết nối thành công.
 
 	//Khi lắng nghe được lệnh "connection" với một tham số, và chúng ta đặt tên tham số là message. Mình thích gì thì mình đặt thôi.
-	//'connection' (2)
-    socket.on('connection', function(loveit) {
-        console.log(loveit);
-    });
-	//khi lắng nghe được lệnh "atime" với một tham số, và chúng ta đặt tên tham số đó là data. Mình thích thì mình đặt thôi
-    socket.on('atime', async function(data) {
-        //sendTime();
-        if (Model){
-            console.log(data);
-            // let model = new Model();
-            // model.setObject(data);
-            // await model.create();
-            webNamespace.emit("info", data);
+    // socket.on('connection', function(message) {
+    //     console.log(message);
+    // });
+
+	//khi lắng nghe được lệnh "atime" với một tham số, và chúng ta đặt tên tham số đó là data
+    socket.on('atime', async function(result) { 
+    
+        if (Model){ // check Model mongoose not null
+            console.log(result); // xuat ra console data nhan duoc tu esp
+            let model = new Model(); //tao moi model
+            model.setObject(result); // set thuoc tinh nhan duoc tu data esp
+            await model.create(); // save model to mongodb
+            webNamespace.emit("info", result); // gui data nhan duoc tu esp len web app with eventName 'info'
         }
     });
-    socket.on("*", function(packet) {
-        console.log(packet);
-		// console.log("esp8266 rev and send to webapp packet: ", packet.data) //in ra để debug
-		// var eventName = packet.data[0]
-		// var eventJson = packet.data[1] || {} //nếu gửi thêm json thì lấy json từ lệnh gửi, không thì gửi chuỗi json rỗng, {}
-		// webapp_nsp.emit(eventName, eventJson) //gửi toàn bộ lệnh + json đến webapp
-	})
-
-	//socket.on('arduino', function (data) {
-	 // io.sockets.emit('arduino', { message: 'R0' });
-      //console.log(data);
-    //});
 });

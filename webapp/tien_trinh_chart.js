@@ -1,7 +1,7 @@
 let x = ['x'];
 let y = ['lit_xang'];
 var line_chart = c3.generate({
-    bindto: '#c3-line-chart',
+    bindto: '#c3-line-chart', // c3-line-chart la id the div can ve bieu do
     point: { 
         r: 4   
     },
@@ -11,7 +11,8 @@ var line_chart = c3.generate({
     },
     data: {
         x: 'x',
-        columns: [
+        columns: [ // columns: array
+            // data example: [['12m','24m'],[5,8]] tuc la x = '12m' tuong ung vs y = 5, x = '24m' tuong ung vs y = 8
             x,
             y
         ],
@@ -29,11 +30,11 @@ var line_chart = c3.generate({
     }
 });
 
-function updateDataChart(quang_duong,lit_xang){
-    x.push(`${quang_duong}m`);
-    y.push(lit_xang);
-    line_chart.load({
-        columns: [
+function updateDataChart(quang_duong,lit_xang){ // ham se duoc goi khi co du lieu moi tu esp
+    x.push(`${quang_duong}m`); // truc x se them du lieu moi
+    y.push(lit_xang); // truc y se them du lieu moi
+    line_chart.load({ // load lai data cho bieu do
+        columns: [ // columns tuong tu o tren
             x,
             y
         ]
