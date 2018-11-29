@@ -1,5 +1,15 @@
 const router = require('express').Router();
 const Model = require('mongoose').model('Model');
+
+router.get('/test-sim', async (req,res,next)=>{
+    try{
+        console.log(req.query.message);
+        return res.status(200).json({message:"hellokitty"});
+    } catch (e) {
+        next(e)
+    }
+})
+
 router.get('', async (req,res,next)=>{
     let a = "{\"toc_do\":99,\"lit_xang\":99,\"quang_duong\": 88, \"do_mo_buom_ga\": 1, \"gia_tri_so_xe\": 4}";
     let model = new Model();
